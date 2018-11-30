@@ -17,3 +17,6 @@ For Duo MFA, you need to contact the Identity Services team and request API keys
 
 ## Beyond Authentication
 WebSSO only gives you a netID. If you need directory information (e.g. name, email, staff/student/faculty status), you will need to use the [DirectorySearch service](https://apiserviceregistry.northwestern.edu). This beyond the scope of our humble demo repository.
+
+## Credits
+Special thanks goes to the McCormick IT group, who wrote the first agentless implementation that I'd seen. All of this is just copping off their code ;)
