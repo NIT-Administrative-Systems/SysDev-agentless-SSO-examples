@@ -3,6 +3,13 @@ This is a repository that contains example implementations of Northwestern's web
 
 We are happy to accept pull requests with more examples!
 
+## Agentless?
+We've relied on the webSSO agent to provide authentication in the past. This is a module that gets plugged into the web server (e.g. Apache) and acts as a request interceptor, only allowing an HTTP request to make it all the way to your application if a valid webSSO session is detected. It'll add the netID in as a header and your app can receive that trusted value.
+
+This repo is an example of agentless setups -- webSSO without having to install that additional module. The upside to this approach is that developers have more control over their app's authentication process (e.g. you can have non-netID auth methods instead of the agent's blanket requirement). It also gives us the capability to do webSSO in non-traditional environments (e.g. AWS lambda) that don't have a supported web server.
+
+There are a couple of downsides, too: Duo MFA must be implemented separately (it isn't too hard, but it's one more thing you have to do), and you lose the safety of having a battle-tested webSSO agent standing between your code and the savage hordes of the internet.
+
 ## Setup
 To authenticate a webSSO session, there is only one prerequisite: your app must be served from a `northwestern.edu` domain. The webSSO cookie is only accessible to `*.northwestern.edu` and `northwestern.edu` itself.
 
