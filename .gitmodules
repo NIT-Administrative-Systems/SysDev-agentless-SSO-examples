@@ -1,0 +1,3 @@
+[submodule "Java-Servlet-Filter"]
+	path = Java-Servlet-Filter
+	url = https://github.com/NIT-Administrative-Systems/Agentless-WebSSO.git
