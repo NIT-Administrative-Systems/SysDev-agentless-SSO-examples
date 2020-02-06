@@ -1,24 +1,19 @@
 <?php
 $netid = 'not authenticated';
-$webSSOApi = 'https://websso.it.northwestern.edu/amserver/identity/attributes';
+
+$apigeeApiKey = 'your-apigee-api-key-for-agentless-sso-here';
+$webSSOApi = 'https://northwestern-test.apigee.net/agentless-websso/validateWebSSOToken';
 
 /**
  * Send the user to the online passport login page.
  */
 function redirectToLogin()
 {
-    // Get this page's URL
-    $protocol = 'http';
-    if (array_key_exists('HTTPS', $_SERVER) == true)
-    {
-        $protocol = 'https';
-    }
+    $redirect = urlencode('https://' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['REQUEST_URI']);
 
-    $redirect = urlencode($protocol . '://' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['REQUEST_URI']);
-
-    header("Location: https://websso.it.northwestern.edu/amserver/UI/Login?goto=$redirect");
+    header("Location: https://uat-nusso.it.northwestern.edu/nusso/XUI/?realm=northwestern#login&authIndexType=service&authIndexValue=ldap-and-duo&goto=$redirect");
     exit;
-} // end getPageUrl
+}
 
 /**
  * Get the value of a cookie, if it exists.
@@ -26,36 +21,16 @@ function redirectToLogin()
 function getCookieValue($name)
 {
     $token = null;
-    if (array_key_exists($name, $_COOKIE) == true)
-    {
+    if (array_key_exists($name, $_COOKIE) == true) {
         $token = $_COOKIE[$name];
     }
 
     return $token;
-} // end getCookieValue
-
-/**
- * Extracts the netID from the websso API response, if available.
- */
-function getNetid($payload)
-{
-    $seek = 'userdetails.attribute.value=';
-
-    foreach (explode("\n", $payload) as $line)
-    {
-        if (substr($line, 0, strlen($seek)) == $seek)
-        {
-            return trim(substr($line, strlen($seek)));
-        }
-    }
-
-    return null;
-} // end getNetid
+}
 
 // Do we have a session?
-$token = getCookieValue('openAMssoToken');
-if ($token == null)
-{
+$token = getCookieValue('nusso');
+if ($token == null) {
     redirectToLogin();
 }
 
@@ -69,25 +44,35 @@ if ($token == null)
 $context  = stream_context_create([
     'http' => [
         'method' => 'POST',
-        'header'=> "Content-type: application/x-www-form-urlencoded\r\n",
-        'content' => http_build_query([
-            'subjectid' => $token,
-            'attributenames' => 'UserToken',
+        'header' => implode("\r\n", [
+            "Content-Length: 0",
+            "apikey: $apigeeApiKey",
+            "webssotoken: $token",
+            "requiresMFA: true",
+            "goto: ", // not using this functionality
         ]),
-    ]
+        'ignore_errors' => true,
+    ],
 ]);
 
 $result = file_get_contents($webSSOApi, false, $context);
-if ($result === FALSE)
-{
-    // Invalid token
+if ($result === false) {
     redirectToLogin();
 }
-else
-{
-    $netid = getNetid($result);
+
+$result = json_decode($result, JSON_OBJECT_AS_ARRAY);
+if (array_key_exists('fault', $result)) {
+    echo "Your apigee key is not valid:<br><pre>";
+    print_r($result);
+    echo "</pre>";
+    die();
 }
 
+if (array_key_exists('netid', $result) === false) {
+    redirectToLogin();
+}
+
+$netid = $result['netid'];
 ?>
 
 <!DOCTYPE html>
@@ -104,7 +89,6 @@ else
   <body>
     <h1>Hello, world!</h1>
     <p>I am authenticated as <strong id='netid'><?= $netid; ?></strong>!</p>
-    <p>If you want to see how to add Duo MFA, they have an example in their <a href='https://github.com/duosecurity/duo_php/tree/master/demos'>PHP SDK</a>.</p>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
