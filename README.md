@@ -1,7 +1,7 @@
-# Agentless WebSSO Examples
-This is a repository that contains example implementations of Northwestern's webSSO authentication. Some of the examples may also include Duo MFA as an additional step.
+# Agentless WebSSO Examples for Legacy WebSSO
+This was a repository that containeds example implementations of Northwestern's webSSO authentication. Some of the examples may have also included Duo MFA as an additional step.
 
-We are happy to accept pull requests with more examples!
+**:warning: This repository is now deprecated. Please see [Agentless-WebSSO](https://github.com/NIT-Administrative-Systems/Agentless-WebSSO) for new examples.**
 
 ## Agentless?
 We've relied on the webSSO agent to provide authentication in the past. This is a module that gets plugged into the web server (e.g. Apache) and acts as a request interceptor, only allowing an HTTP request to make it all the way to your application if a valid webSSO session is detected. It'll add the netID in as a header and your app can receive that trusted value.
